@@ -1,0 +1,780 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet"><title>鹦鹉食谱助手</title>
+<style>
+  :root {
+    --forest-50: #f0fdf4; --forest-100: #dcfce7; --forest-200: #bbf7d0; --forest-300: #86efac;
+    --forest-400: #4ade80; --forest-500: #52b788; --forest-600: #40916c; --forest-700: #2d6a4f;
+    --mustard-50: #fefce8; --mustard-100: #fef9c3; --mustard-200: #fef08a; --mustard-300: #fde047;
+    --mustard-400: #facc15; --mustard-500: #d4a017; --mustard-600: #a16207;
+    --brick-50: #fef2f2; --brick-100: #ffe0e0; --brick-200: #ffc7c7; --brick-300: #fca5a5;
+    --brick-400: #e76f51; --brick-500: #c1440e; --brick-600: #9a2c0e;
+    --cream-50: #fefdf8; --cream-100: #fdf6e3; --cream-200: #f5e6c8; --cream-300: #ecdbb5;
+    --cream-400: #d4c5a9; --cream-500: #bcab8a;
+    --brown-400: #a0845c; --brown-500: #7c5e3c; --brown-600: #5c3d1e; --brown-700: #3d2610;
+    --gray-50: #faf9f6; --gray-100: #f0ede6; --gray-200: #ddd8cd; --gray-300: #c4bdb0;
+    --gray-400: #a09888; --gray-500: #7a7168; --gray-600: #5c544a; --gray-700: #3d3830;
+    --gray-800: #2a2520;
+    --paper: #fdf6e3;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family: "ZCOOL KuaiLe","PingFang SC","Hiragino Sans GB","Microsoft YaHei",cursive,sans-serif;
+    background: var(--cream-100); color: var(--gray-800);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    min-height:100vh; max-width:430px; margin:0 auto; overflow-x:hidden;
+  }
+  .header {
+    background: linear-gradient(135deg, #52b788 0%, #40916c 60%, #40916c 100%);
+    padding:20px 20px 24px; position:sticky; top:0; z-index:100;
+    box-shadow:0 5px 0 var(--mustard-400);
+  }
+  .header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .header-title { font-size:24px; font-weight:900; color:#fef9c3; letter-spacing:3px; text-shadow:2px 2px 0 rgba(0,0,0,.15); }
+  .header-sub { font-size:13px; color:rgba(254,249,195,.8); margin-top:2px; }
+  .search-box {
+    display:flex; align-items:center; background:var(--cream-100);
+    border-radius:20px; padding:0 16px; height:44px;
+    border:2.5px dashed var(--mustard-400); transition:all .2s;
+  }
+  .search-box:focus-within { border-style:solid; border-color:var(--forest-500); box-shadow:0 0 0 3px rgba(45,106,79,.2); }
+  .search-input { border:none; outline:none; background:transparent; flex:1; font-size:14px; color:var(--gray-800); height:100%; }
+  .search-input::placeholder { color:var(--gray-400); }
+  .search-clear { font-size:16px; cursor:pointer; color:var(--gray-400); padding:4px; display:none; }
+  .search-clear.show { display:block; }
+  .tab-nav { display:flex; background:var(--cream-50); border-bottom:3px solid var(--mustard-400); position:sticky; top:90px; z-index:99; }
+  .tab-item {
+    flex:1; text-align:center; padding:10px 4px; font-size:13px; font-weight:600;
+    color:var(--gray-400); cursor:pointer; border-bottom:4px solid transparent; user-select:none; transition:all .2s;
+  }
+  .tab-item.active { color:var(--forest-500); border-bottom-color:var(--mustard-400); }
+  .tab-icon { display:block; margin:0 auto 2px; }
+  .content { padding:14px 16px 100px; }
+  .category-section { margin-bottom:20px; }
+  .category-header { display:flex; align-items:center; gap:6px; font-size:15px; font-weight:900; color:var(--forest-600); margin-bottom:10px; padding-left:10px; border-left:4px dashed var(--mustard-400); }
+  .food-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .food-card {
+    background:var(--cream-50); border-radius:16px; padding:10px 6px 8px; text-align:center; cursor:pointer;
+    border:2.5px solid var(--forest-200); transition:all .15s;
+  }
+  .food-card:active { transform:scale(.95); }
+  .food-card:hover { border-color:var(--forest-300); box-shadow:0 3px 12px rgba(45,106,79,.15); transform:rotate(-1deg); }
+  .food-card .food-icon { display:block; margin:0 auto 4px; }
+  .food-card .food-name { font-size:12px; font-weight:800; color:var(--gray-700); line-height:1.3; }
+  .food-card.danger { border-color:var(--brick-200); border-style:dashed; }
+  .food-card.danger:hover { border-color:var(--brick-300); box-shadow:0 3px 10px rgba(225,111,81,.15); transform:rotate(1deg); }
+  .food-card.warning { border-color:var(--mustard-200); border-style:dotted; }
+  .food-card.warning:hover { border-color:var(--mustard-300); box-shadow:0 3px 10px rgba(234,179,8,.12); }
+  .level-badge { display:inline-block; font-size:9px; font-weight:700; padding:1px 5px; border-radius:6px; margin-top:3px; }
+  .level-badge.fatal { background:var(--brick-200); color:var(--brick-500); }
+  .level-badge.danger-level { background:var(--mustard-100); color:var(--mustard-600); border:1.5px solid var(--mustard-300); }
+  .level-badge.caution { background:var(--mustard-50); color:var(--mustard-500); border:1.5px solid var(--mustard-200); }
+  .level-badge.safe { background:var(--forest-200); color:var(--forest-500); }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:200; display:none; align-items:flex-end; justify-content:center; animation:fadeIn .2s; }
+  .modal-overlay.show { display:flex; }
+  .modal-sheet {
+    background:#fff; border-radius:24px 24px 0 0; width:100%; max-width:430px;
+    max-height:80vh; overflow-y:auto; padding:0 20px 32px; border:3px solid var(--mustard-400); border-bottom:none; animation:slideUp .3s cubic-bezier(.22,.68,0,1);
+  }
+  .modal-handle { width:36px; height:4px; background:var(--gray-300); border-radius:2px; margin:10px auto 16px; }
+  .modal-icon { text-align:center; display:block; margin-bottom:8px; }
+  .modal-name { text-align:center; font-size:22px; font-weight:900; color:var(--forest-600); }
+  .modal-level { text-align:center; margin:6px 0 16px; }
+  .modal-section { margin-bottom:16px; }
+  .modal-section-title { font-size:13px; font-weight:700; color:var(--gray-500); margin-bottom:6px; }
+  .modal-section-content { font-size:14px; line-height:1.7; color:var(--gray-700); }
+  .modal-close { display:block; margin:8px auto 0; width:100%; height:44px; background:var(--forest-100); border:2px solid var(--forest-200); border-radius:14px; font-size:15px; font-weight:800; color:var(--forest-600); cursor:pointer; }
+  .modal-close:active { background:var(--gray-200); }
+  .danger-box { background:var(--brick-50); border:2.5px dashed var(--brick-300); border-radius:14px; padding:12px; margin-bottom:12px; }
+  .danger-box .db-title { font-size:14px; font-weight:700; color:var(--brick-500); margin-bottom:4px; }
+  .danger-box .db-content { font-size:13px; color:var(--brick-600); line-height:1.6; }
+  .guide-card { background:var(--cream-50); border-radius:16px; padding:16px; border:2.5px dashed var(--forest-200); margin-bottom:12px; }
+  .guide-card h3 { font-size:16px; font-weight:900; color:var(--forest-600); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+  .guide-bar { display:flex; height:32px; border-radius:8px; overflow:hidden; margin-bottom:8px; }
+  .guide-bar-seg { display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; }
+  .guide-legend { display:flex; flex-wrap:wrap; gap:8px; }
+  .guide-legend-item { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--gray-600); }
+  .guide-legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+  .guide-rule { display:flex; gap:10px; margin-bottom:10px; }
+  .guide-rule-num { width:24px; height:24px; border-radius:50%; background:var(--mustard-200); color:var(--forest-600); font-size:12px; font-weight:900; border:2px solid var(--mustard-400); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .guide-rule-text { font-size:13px; line-height:1.6; color:var(--gray-700); }
+  .guide-rule-text strong { color:var(--forest-500); }
+  .schedule-item { display:flex; gap:12px; margin-bottom:12px; align-items:flex-start; }
+  .schedule-time { font-size:12px; font-weight:700; color:var(--forest-600); background:var(--forest-100); border-radius:10px; padding:4px 8px; white-space:nowrap; flex-shrink:0; border:1.5px dashed var(--mustard-400); }
+  .schedule-content { font-size:13px; line-height:1.5; color:var(--gray-700); }
+  .schedule-content span { font-weight:600; }
+  .search-results { padding:12px 0; }
+  .search-result-item { display:flex; align-items:center; gap:12px; padding:12px; background:var(--cream-50); border-radius:14px; margin-bottom:8px; border:2px dashed var(--forest-200); cursor:pointer; }
+  .search-result-item:active { transform:scale(.98); }
+  .sr-emoji { flex-shrink:0; }
+  .sr-info { flex:1; min-width:0; }
+  .sr-name { font-size:14px; font-weight:700; color:var(--gray-800); }
+  .sr-cat { font-size:11px; color:var(--gray-400); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .no-result { text-align:center; padding:40px 0; color:var(--gray-400); }
+  .no-result p { font-size:14px; }
+  .size-selector { display:flex; gap:6px; margin-bottom:16px; }
+  .size-btn { flex:1; padding:8px 4px; border-radius:10px; font-size:12px; font-weight:600; text-align:center; cursor:pointer; border:2.5px dashed var(--gray-300); background:var(--cream-50); color:var(--gray-500); transition:all .15s; }
+  .size-btn.active { border-color:var(--mustard-400); border-style:solid; background:var(--mustard-100); color:var(--forest-600); }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-thumb { background:var(--gray-300); border-radius:2px; }
+  /* Profile styles */
+  .profile-empty { text-align:center; padding:50px 20px 20px; }
+  .profile-empty-icon { display:block; margin:0 auto 12px; }
+  .profile-empty p { font-size:14px; color:var(--gray-400); line-height:1.7; }
+  .profile-add-btn {
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; height:48px; background:var(--forest-100); border:2.5px dashed var(--mustard-400);
+    border-radius:16px; font-size:14px; font-weight:800; color:var(--forest-500);
+    cursor:pointer; margin-top:16px; transition:all .15s;
+  }
+  .profile-add-btn:active { transform:scale(.97); background:var(--forest-200); }
+  .parrot-card {
+    display:flex; align-items:center; gap:14px; background:var(--cream-50);
+    border-radius:16px; padding:14px; margin-bottom:10px;
+    border:2.5px dashed var(--forest-200); transition:all .15s;
+  }
+  .parrot-card:active { transform:scale(.98); }
+  .parrot-photo {
+    width:56px; height:56px; border-radius:50%; flex-shrink:0;
+    background:var(--forest-100); display:flex; align-items:center;
+    justify-content:center; overflow:hidden; border:3px solid var(--mustard-400);
+  }
+  .parrot-photo img { width:100%; height:100%; object-fit:cover; }
+  .parrot-info { flex:1; min-width:0; }
+  .parrot-name { font-size:16px; font-weight:900; color:var(--forest-600); }
+  .parrot-detail { font-size:12px; color:var(--gray-500); margin-top:3px; }
+  .parrot-actions { display:flex; gap:8px; flex-shrink:0; }
+  .parrot-action-btn {
+    width:32px; height:32px; border-radius:8px; border:none;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all .15s; font-size:14px;
+  }
+  .parrot-action-btn.edit { background:var(--forest-100); color:var(--forest-500); }
+  .parrot-action-btn.edit:active { background:var(--forest-200); }
+  .parrot-action-btn.delete { background:var(--brick-100); color:var(--brick-400); }
+  .parrot-action-btn.delete:active { background:var(--brick-200); }
+  .form-group { margin-bottom:14px; }
+  .form-label { display:block; font-size:13px; font-weight:700; color:var(--gray-600); margin-bottom:6px; }
+  .form-input {
+    width:100%; height:44px; border:2px solid var(--gray-200); border-radius:12px;
+    padding:0 14px; font-size:14px; color:var(--gray-800); background:#fff;
+    outline:none; transition:border-color .2s;
+  }
+  .form-input:focus { border-color:var(--forest-500); }
+  .form-select {
+    width:100%; height:44px; border:2px solid var(--gray-200); border-radius:12px;
+    padding:0 14px; font-size:14px; color:var(--gray-800); background:#fff;
+    outline:none; -webkit-appearance:none; appearance:none; transition:border-color .2s;
+  }
+  .form-select:focus { border-color:var(--forest-500); }
+  .photo-upload {
+    width:100%; height:120px; border:2px dashed var(--gray-300); border-radius:14px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    cursor:pointer; transition:all .2s; position:relative; overflow:hidden;
+    background:var(--gray-50);
+  }
+  .photo-upload:hover { border-color:var(--mustard-400); background:var(--mustard-50); }
+  .photo-upload img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:12px; }
+  .photo-upload-text { font-size:12px; color:var(--gray-400); }
+  .form-actions { display:flex; gap:10px; margin-top:20px; }
+  .form-btn {
+    flex:1; height:44px; border-radius:12px; border:none;
+    font-size:15px; font-weight:600; cursor:pointer; transition:all .15s;
+  }
+  .form-btn:active { transform:scale(.97); }
+  .form-btn.primary { background:var(--forest-500); color:#fef9c3; border:2px solid var(--forest-600); }
+  .form-btn.primary:active { background:var(--forest-600); }
+  .form-btn.secondary { background:var(--gray-100); color:var(--gray-600); }
+  .confirm-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300;
+    display:flex; align-items:center; justify-content:center; animation:fadeIn .2s;
+  }
+  .confirm-box { background:var(--cream-50); border-radius:18px; padding:24px; width:280px; text-align:center; border:3px solid var(--mustard-400); }
+  .confirm-title { font-size:16px; font-weight:900; color:var(--forest-600); margin-bottom:8px; }
+  .confirm-msg { font-size:13px; color:var(--gray-500); line-height:1.5; margin-bottom:20px; }
+  .confirm-btns { display:flex; gap:10px; }
+  .confirm-btn { flex:1; height:40px; border-radius:10px; border:none; font-size:14px; font-weight:600; cursor:pointer; }
+  .confirm-btn.cancel { background:var(--gray-100); color:var(--gray-600); }
+  .confirm-btn.danger { background:var(--brick-400); color:#fff; }
+  .confirm-btn.danger:active { background:var(--brick-500); }
+</style>
+</head>
+<body>
+<svg style="position:absolute;width:0;height:0">
+  <defs>
+    <filter id="sketch"><feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="4" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5"/></filter>
+    <filter id="sketch-lg"><feTurbulence type="turbulence" baseFrequency="0.015" numOctaves="4" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="3"/></filter>
+  </defs>
+</svg>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">鹦鹉食谱助手</div>
+      <div class="header-sub">查询鹦鹉安全食物与饮食指南</div>
+    </div>
+    <svg width="44" height="44" viewBox="0 0 48 48" filter="url(#sketch-lg)"><circle cx="24" cy="26" r="17" fill="#86efac" stroke="#52b788" stroke-width="2.5"/><circle cx="19" cy="23" r="3" fill="#fff"/><circle cx="29" cy="23" r="3" fill="#fff"/><circle cx="20" cy="23.5" r="1.8" fill="#1f2937"/><circle cx="30" cy="23.5" r="1.8" fill="#1f2937"/><path d="M22 28 Q24 30 26 28" fill="none" stroke="#d4a017" stroke-width="2.5" stroke-linecap="round"/><path d="M22 10 Q18 4 22 6 Q24 2 24 8" fill="#52b788" stroke="#40916c" stroke-width="1.5"/></svg>
+  </div>
+  <div class="search-box">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c5e3c" stroke-width="3" stroke-linecap="round" style="margin-right:8px;flex-shrink:0"><circle cx="10.5" cy="10.5" r="7"/><path d="M16 16l4 4"/></svg>
+    <input class="search-input" id="searchInput" placeholder="搜索食物，如：苹果、巧克力…" autocomplete="off">
+    <span class="search-clear" id="searchClear" onclick="clearSearch()">✕</span>
+  </div>
+</div>
+
+<div class="tab-nav" id="tabNav">
+  <div class="tab-item active" data-tab="safe" onclick="switchTab('safe')">
+    <svg class="tab-icon" width="20" height="20" viewBox="0 0 48 48" filter="url(#sketch)"><circle cx="24" cy="26" r="17" fill="#86efac" stroke="#52b788" stroke-width="2.5"/><circle cx="19" cy="23" r="3" fill="#fff"/><circle cx="29" cy="23" r="3" fill="#fff"/><circle cx="20" cy="23.5" r="1.8" fill="#1f2937"/><circle cx="30" cy="23.5" r="1.8" fill="#1f2937"/><path d="M22 28 Q24 30 26 28" fill="none" stroke="#d4a017" stroke-width="2.5" stroke-linecap="round"/></svg>能吃
+  </div>
+  <div class="tab-item" data-tab="danger" onclick="switchTab('danger')">
+    <svg class="tab-icon" width="20" height="20" viewBox="0 0 48 48" filter="url(#sketch)"><circle cx="24" cy="24" r="18" fill="#ffc7c7" stroke="#e76f51" stroke-width="3"/><path d="M18 18 L30 30 M30 18 L18 30" fill="none" stroke="#e76f51" stroke-width="4" stroke-linecap="round"/></svg>不能吃
+  </div>
+  <div class="tab-item" data-tab="guide" onclick="switchTab('guide')">
+    <svg class="tab-icon" width="20" height="20" viewBox="0 0 48 48" filter="url(#sketch)"><rect x="8" y="6" width="32" height="36" rx="3" fill="#fef9c3" stroke="#d4a017" stroke-width="3"/><path d="M14 16 H34 M14 22 H34 M14 28 H28 M14 34 H24" fill="none" stroke="#a16207" stroke-width="2" stroke-linecap="round"/></svg>喂食指南
+  </div>
+  <div class="tab-item" data-tab="profile" onclick="switchTab('profile')">
+    <svg class="tab-icon" width="20" height="20" viewBox="0 0 48 48" filter="url(#sketch)"><circle cx="24" cy="26" r="17" fill="#86efac" stroke="#52b788" stroke-width="2.5"/><circle cx="19" cy="23" r="3" fill="#fff"/><circle cx="29" cy="23" r="3" fill="#fff"/><circle cx="20" cy="23.5" r="1.8" fill="#1f2937"/><circle cx="30" cy="23.5" r="1.8" fill="#1f2937"/><path d="M22 28 Q24 30 26 28" fill="none" stroke="#d4a017" stroke-width="2.5" stroke-linecap="round"/><path d="M22 10 Q18 4 22 6 Q24 2 24 8" fill="#52b788" stroke="#40916c" stroke-width="1.5"/></svg>我的
+  </div>
+</div>
+
+<div class="content" id="content"></div>
+<div class="modal-overlay" id="modal" onclick="closeModal(event)"><div class="modal-sheet" id="modalSheet"></div></div>
+
+<script>
+// Hand-drawn SVG icon generator
+function foodIcon(name, size=36) {
+  const S = {
+    // === VEGETABLES ===
+    '白菜':{d:'M24 4Q14 4 12 18Q10 32 24 42Q38 32 36 18Q34 4 24 4Z',f:'#c6f6d5',s:'#276749',extra:'<path d="M24 10L24 30" fill="none" stroke="#48bb78" stroke-width="1.5" stroke-dasharray="3 3"/>'},
+    '芝麻菜':{d:'M24 4Q14 4 12 18Q10 32 24 42Q38 32 36 18Q34 4 24 4Z',f:'#b2f5ba',s:'#276749',extra:'<path d="M20 14l8 8M28 14l-8 8" fill="none" stroke="#68d391" stroke-width="1"/>'},
+    '萝卜叶':{d:'M24 4Q14 4 12 18Q10 32 24 42Q38 32 36 18Q34 4 24 4Z',f:'#9ae6b4',s:'#276749',extra:'<path d="M24 38L24 46" stroke="#c05621" stroke-width="3" stroke-linecap="round"/>'},
+    '油菜':{d:'M24 4Q14 4 12 18Q10 32 24 42Q38 32 36 18Q34 4 24 4Z',f:'#d4f5d4',s:'#276749',extra:'<path d="M18 20Q24 14 30 20" fill="none" stroke="#48bb78" stroke-width="1.5"/>'},
+    '羽衣甘蓝':{d:'M24 3Q10 3 10 22Q10 42 24 44Q38 42 38 22Q38 3 24 3Z',f:'#68d391',s:'#22543d',extra:'<path d="M16 16Q24 10 32 16M14 24Q24 18 34 24M16 32Q24 26 32 32" fill="none" stroke="#276749" stroke-width="1"/>'},
+    '菠菜':{d:'M24 5Q14 5 12 18Q10 31 24 41Q38 31 36 18Q34 5 24 5Z',f:'#48bb78',s:'#22543d',extra:'<path d="M24 41L22 47" stroke="#744210" stroke-width="2" stroke-linecap="round"/>'},
+    '蒲公英叶':{d:'M24 5Q15 5 13 18Q11 30 24 40Q37 30 35 18Q33 5 24 5Z',f:'#9ae6b4',s:'#276749',extra:'<path d="M20 16Q24 24 20 32M28 16Q24 24 28 32" fill="none" stroke="#48bb78" stroke-width="1"/>'},
+    '小白菜':{d:'M24 4Q14 4 12 18Q10 32 24 42Q38 32 36 18Q34 4 24 4Z',f:'#c6f6d5',s:'#276749',extra:'<path d="M24 8L24 36" fill="none" stroke="#68d391" stroke-width="1" stroke-dasharray="2 3"/>'},
+    '西兰花':{d:'M24 4Q8 4 8 20Q8 32 24 36Q40 32 40 20Q40 4 24 4Z',f:'#48bb78',s:'#22543d',extra:'<circle cx="18" cy="14" r="4" fill="#68d391" stroke="#276749" stroke-width="1.5"/><circle cx="30" cy="14" r="4" fill="#68d391" stroke="#276749" stroke-width="1.5"/><circle cx="24" cy="8" r="4" fill="#68d391" stroke="#276749" stroke-width="1.5"/><path d="M24 36L24 44" stroke="#744210" stroke-width="3" stroke-linecap="round"/>'},
+    '菜花':{d:'M24 6Q10 6 10 20Q10 30 24 34Q38 30 38 20Q38 6 24 6Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M24 34L24 44" stroke="#a0aec0" stroke-width="3" stroke-linecap="round"/>'},
+    '芹菜':{d:'M20 4Q16 4 16 24Q16 42 20 44Q24 42 24 24Q24 4 20 4Z',f:'#9ae6b4',s:'#276749',extra:'<path d="M28 4Q24 4 24 24Q24 42 28 44Q32 42 32 24Q32 4 28 4Z" fill="#c6f6d5" stroke="#276749" stroke-width="1.5"/>'},
+    '胡萝卜':{d:'M24 2Q16 2 16 18Q16 36 24 46Q32 36 32 18Q32 2 24 2Z',f:'#fc8181',s:'#9b2c2c',extra:'<path d="M20 6Q24 2 28 6M18 8Q24 4 30 8" fill="none" stroke="#48bb78" stroke-width="2" stroke-linecap="round"/>'},
+    '红薯':{d:'M24 6Q12 6 10 24Q10 42 24 44Q38 42 36 24Q34 6 24 6Z',f:'#fc8181',s:'#9b2c2c',extra:'<path d="M24 44L22 48" stroke="#a0aec0" stroke-width="1.5" stroke-linecap="round"/>'},
+    '土豆':{d:'M24 8Q10 8 8 24Q8 40 24 42Q40 40 38 24Q36 8 24 8Z',f:'#fbd38d',s:'#975a16',extra:'<circle cx="18" cy="24" r="1.5" fill="#975a16"/><circle cx="30" cy="28" r="1.5" fill="#975a16"/><circle cx="24" cy="18" r="1.5" fill="#975a16"/>'},
+    '彩椒':{d:'M24 4Q10 4 10 22Q10 40 24 42Q38 40 38 22Q38 4 24 4Z',f:'#fc8181',s:'#9b2c2c',extra:'<path d="M20 4Q24 0 28 4" fill="#48bb78" stroke="#276749" stroke-width="1.5"/>'},
+    '南瓜':{d:'M24 6Q8 6 8 24Q8 44 24 46Q40 44 40 24Q40 6 24 6Z',f:'#fbd38d',s:'#975a16',extra:'<path d="M24 6L24 2" stroke="#276749" stroke-width="2.5" stroke-linecap="round"/><path d="M16 4Q20 2 24 6" fill="#48bb78" stroke="#276749" stroke-width="1.5"/>'},
+    '豌豆':{d:'M24 6Q10 8 10 22Q10 38 24 40Q38 38 38 22Q38 8 24 6Z',f:'#9ae6b4',s:'#276749',extra:'<circle cx="20" cy="18" r="3" fill="#68d391" stroke="#276749" stroke-width="1"/><circle cx="28" cy="22" r="3" fill="#68d391" stroke="#276749" stroke-width="1"/><circle cx="22" cy="30" r="3" fill="#68d391" stroke="#276749" stroke-width="1"/>'},
+    '荷兰豆':{d:'M24 8Q12 10 12 24Q12 38 24 40Q36 38 36 24Q36 10 24 8Z',f:'#c6f6d5',s:'#276749',extra:'<circle cx="22" cy="20" r="2.5" fill="#68d391" stroke="#276749" stroke-width="1"/><circle cx="26" cy="28" r="2.5" fill="#68d391" stroke="#276749" stroke-width="1"/>'},
+    '辣椒':{d:'M24 6Q18 6 16 20Q14 34 24 44Q34 34 32 20Q30 6 24 6Z',f:'#fc8181',s:'#9b2c2c',extra:'<path d="M24 6Q26 2 28 4" fill="#48bb78" stroke="#276749" stroke-width="1.5"/>'},
+    '鲜玉米':{d:'M24 4Q16 4 16 24Q16 44 24 46Q32 44 32 24Q32 4 24 4Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M20 12L28 12M19 18L29 18M20 24L28 24M19 30L29 30M20 36L28 36" stroke="#d69e2e" stroke-width="1" stroke-linecap="round"/><path d="M16 4Q18 0 24 2" fill="#48bb78" stroke="#276749" stroke-width="1"/>'},
+    '马齿苋':{d:'M24 8Q14 8 12 22Q12 38 24 42Q36 38 34 22Q32 8 24 8Z',f:'#9ae6b4',s:'#276749',extra:'<circle cx="20" cy="14" r="3" fill="#fefcbf" stroke="#d69e2e" stroke-width="1"/><circle cx="28" cy="14" r="3" fill="#fefcbf" stroke="#d69e2e" stroke-width="1"/>'},
+    '黄瓜':{d:'M24 6Q14 6 12 24Q12 42 24 44Q36 42 34 24Q32 6 24 6Z',f:'#9ae6b4',s:'#276749',extra:'<circle cx="22" cy="18" r="1.5" fill="#276749"/><circle cx="26" cy="26" r="1.5" fill="#276749"/><circle cx="20" cy="34" r="1.5" fill="#276749"/>'},
+    '四季豆':{d:'M22 4Q10 6 12 24Q14 42 22 44Q30 42 28 24Q26 6 22 4Z',f:'#68d391',s:'#22543d',extra:'<ellipse cx="20" cy="20" rx="3" ry="2" fill="#48bb78"/><ellipse cx="24" cy="30" rx="3" ry="2" fill="#48bb78"/>'},
+    // === FRUITS ===
+    '苹果':{d:'M24 6Q10 6 10 22Q10 40 24 42Q38 40 38 22Q38 6 24 6Z',f:'#fc8181',s:'#9b2c2c',extra:'<path d="M24 6Q26 0 30 2" fill="none" stroke="#276749" stroke-width="2" stroke-linecap="round"/><ellipse cx="26" cy="8" rx="4" ry="6" fill="#48bb78" stroke="#276749" stroke-width="1" transform="rotate(-20 26 8)"/>'},
+    '梨':{d:'M24 2Q16 2 14 16Q10 34 24 44Q38 34 34 16Q32 2 24 2Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M24 2Q26 -2 28 0" fill="none" stroke="#276749" stroke-width="2" stroke-linecap="round"/>'},
+    '桃子':{d:'M24 6Q10 6 10 22Q10 40 24 44Q38 40 38 22Q38 6 24 6Z',f:'#fbb6ce',s:'#97266d',extra:'<path d="M24 6L24 44" fill="none" stroke="#97266d" stroke-width="1" stroke-dasharray="2 2"/><path d="M24 6Q22 2 26 4" fill="#48bb78" stroke="#276749" stroke-width="1.5"/>'},
+    '樱桃':{d:'',f:'',s:'',extra:'<circle cx="18" cy="30" r="8" fill="#fc8181" stroke="#9b2c2c" stroke-width="2"/><circle cx="30" cy="28" r="8" fill="#fc8181" stroke="#9b2c2c" stroke-width="2"/><path d="M18 22Q22 6 26 4" fill="none" stroke="#276749" stroke-width="2" stroke-linecap="round"/><path d="M30 20Q28 8 26 4" fill="none" stroke="#276749" stroke-width="2" stroke-linecap="round"/>'},
+    '橙子':{d:'M24 6Q8 6 8 24Q8 42 24 44Q40 42 40 24Q40 6 24 6Z',f:'#fbd38d',s:'#c05621',extra:'<circle cx="24" cy="24" r="2" fill="#c05621"/><path d="M24 6L24 2" stroke="#276749" stroke-width="2" stroke-linecap="round"/>'},
+    '橘子':{d:'M24 6Q10 6 10 24Q10 42 24 44Q38 42 38 24Q38 6 24 6Z',f:'#f6ad55',s:'#c05621',extra:'<circle cx="24" cy="24" r="2" fill="#975a16"/><path d="M24 6Q26 2 28 4" fill="#48bb78" stroke="#276749" stroke-width="1.5"/>'},
+    '蓝莓':{d:'',f:'',s:'',extra:'<circle cx="18" cy="26" r="7" fill="#7f9cf5" stroke="#4c51bf" stroke-width="2"/><circle cx="30" cy="24" r="7" fill="#7f9cf5" stroke="#4c51bf" stroke-width="2"/><circle cx="24" cy="16" r="7" fill="#7f9cf5" stroke="#4c51bf" stroke-width="2"/><circle cx="18" cy="26" r="1" fill="#4c51bf"/><circle cx="30" cy="24" r="1" fill="#4c51bf"/><circle cx="24" cy="16" r="1" fill="#4c51bf"/>'},
+    '草莓':{d:'M24 4Q14 4 12 20Q12 38 24 44Q36 38 36 20Q34 4 24 4Z',f:'#fc8181',s:'#9b2c2c',extra:'<circle cx="20" cy="18" r="1" fill="#fefcbf"/><circle cx="28" cy="22" r="1" fill="#fefcbf"/><circle cx="22" cy="28" r="1" fill="#fefcbf"/><circle cx="26" cy="34" r="1" fill="#fefcbf"/><path d="M18 6Q24 2 30 6Q26 8 24 6Q22 8 18 6Z" fill="#48bb78" stroke="#276749" stroke-width="1.5"/>'},
+    '葡萄':{d:'',f:'',s:'',extra:'<circle cx="20" cy="16" r="5" fill="#d6bcfa" stroke="#6b46c1" stroke-width="1.5"/><circle cx="30" cy="16" r="5" fill="#d6bcfa" stroke="#6b46c1" stroke-width="1.5"/><circle cx="16" cy="26" r="5" fill="#d6bcfa" stroke="#6b46c1" stroke-width="1.5"/><circle cx="26" cy="26" r="5" fill="#d6bcfa" stroke="#6b46c1" stroke-width="1.5"/><circle cx="36" cy="26" r="5" fill="#d6bcfa" stroke="#6b46c1" stroke-width="1.5"/><circle cx="22" cy="36" r="5" fill="#d6bcfa" stroke="#6b46c1" stroke-width="1.5"/><circle cx="32" cy="36" r="5" fill="#d6bcfa" stroke="#6b46c1" stroke-width="1.5"/><path d="M24 10Q26 4 28 2" fill="none" stroke="#276749" stroke-width="2"/>'},
+    '猕猴桃':{d:'M24 6Q10 6 10 24Q10 42 24 44Q38 42 38 24Q38 6 24 6Z',f:'#d4e7c5',s:'#4a6741',extra:'<circle cx="24" cy="24" r="6" fill="#fefcbf" stroke="#975a16" stroke-width="1"/><circle cx="24" cy="24" r="2" fill="#975a16"/><path d="M20 18L24 24L28 18" fill="none" stroke="#975a16" stroke-width=".5"/><path d="M20 30L24 24L28 30" fill="none" stroke="#975a16" stroke-width=".5"/>'},
+    '石榴':{d:'M24 8Q10 8 10 24Q10 42 24 44Q38 42 38 24Q38 8 24 8Z',f:'#fc8181',s:'#9b2c2c',extra:'<circle cx="24" cy="24" r="5" fill="#feb2b2" stroke="#9b2c2c" stroke-width="1"/><path d="M22 6L24 2L26 6" fill="#c05621" stroke="#975a16" stroke-width="1.5"/>'},
+    '火龙果':{d:'M24 6Q12 6 10 24Q10 42 24 44Q38 42 36 24Q34 6 24 6Z',f:'#fed7e2',s:'#97266d',extra:'<path d="M18 10L16 20M30 10L32 20M14 30L18 36M34 30L30 36" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"/>'},
+    '西瓜':{d:'M6 30Q6 8 24 6Q42 8 42 30Z',f:'#fc8181',s:'#276749',extra:'<path d="M10 30Q10 12 24 10Q38 12 38 30Z" fill="#48bb78" stroke="#276749" stroke-width="2.5"/><circle cx="20" cy="22" r="1.5" fill="#1a202c"/><circle cx="28" cy="22" r="1.5" fill="#1a202c"/><circle cx="24" cy="28" r="1.5" fill="#1a202c"/>'},
+    '哈密瓜':{d:'M24 8Q8 8 8 26Q8 44 24 46Q40 44 40 26Q40 8 24 8Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M14 20Q24 16 34 20M14 28Q24 24 34 28M14 36Q24 32 34 36" fill="none" stroke="#d69e2e" stroke-width="1" stroke-linecap="round"/>'},
+    '芒果':{d:'M24 4Q14 4 12 22Q10 40 24 44Q38 40 36 22Q34 4 24 4Z',f:'#fbd38d',s:'#c05621',extra:'<path d="M24 4Q28 0 32 2" fill="none" stroke="#276749" stroke-width="2" stroke-linecap="round"/>'},
+    '菠萝':{d:'M24 8Q10 10 10 26Q10 42 24 44Q38 42 38 26Q38 10 24 8Z',f:'#fbd38d',s:'#975a16',extra:'<path d="M18 6Q16 2 20 0Q24 4 22 8M30 6Q32 2 28 0Q24 4 26 8" fill="#48bb78" stroke="#276749" stroke-width="1.5"/><path d="M18 18L24 22L30 18M16 26L24 30L32 26M18 34L24 38L30 34" fill="none" stroke="#975a16" stroke-width="1" stroke-linecap="round"/>'},
+    '木瓜':{d:'M24 6Q12 6 10 24Q8 42 24 46Q40 42 38 24Q36 6 24 6Z',f:'#fbd38d',s:'#c05621',extra:'<circle cx="24" cy="26" r="6" fill="#2d3748" stroke="#1a202c" stroke-width="1.5"/><circle cx="22" cy="25" r="1" fill="#fbd38d"/><circle cx="26" cy="25" r="1" fill="#fbd38d"/><circle cx="24" cy="28" r="1" fill="#fbd38d"/>'},
+    '香蕉':{d:'M8 12Q4 24 14 36Q24 46 36 38Q44 32 38 22Q34 16 28 20Q22 24 20 18Q18 10 8 12Z',f:'#fefcbf',s:'#975a16',extra:''},
+    '荔枝':{d:'M24 6Q10 6 10 24Q10 42 24 44Q38 42 38 24Q38 6 24 6Z',f:'#fbb6ce',s:'#97266d',extra:'<circle cx="20" cy="18" r="2" fill="#fed7e2" stroke="#97266d" stroke-width=".5"/><circle cx="28" cy="18" r="2" fill="#fed7e2" stroke="#97266d" stroke-width=".5"/><circle cx="20" cy="26" r="2" fill="#fed7e2" stroke="#97266d" stroke-width=".5"/><circle cx="28" cy="26" r="2" fill="#fed7e2" stroke="#97266d" stroke-width=".5"/><circle cx="24" cy="34" r="2" fill="#fed7e2" stroke="#97266d" stroke-width=".5"/>'},
+    '椰子':{d:'M24 12Q8 12 8 30Q8 46 24 48Q40 46 40 30Q40 12 24 12Z',f:'#a0aec0',s:'#4a5568',extra:'<circle cx="24" cy="30" r="3" fill="#4a5568"/><path d="M18 14Q16 6 20 2" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"/><path d="M30 14Q32 6 28 2" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"/>'},
+    // === GRAINS ===
+    '黄谷子':{d:'M24 12Q16 12 16 24Q16 36 24 40Q32 36 32 24Q32 12 24 12Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M24 4L24 12" stroke="#975a16" stroke-width="2"/><path d="M22 6Q24 2 26 6" fill="#d69e2e" stroke="#975a16" stroke-width="1"/>'},
+    '红谷子':{d:'M24 12Q16 12 16 24Q16 36 24 40Q32 36 32 24Q32 12 24 12Z',f:'#fbd38d',s:'#c05621',extra:'<path d="M24 4L24 12" stroke="#c05621" stroke-width="2"/><path d="M22 6Q24 2 26 6" fill="#fc8181" stroke="#c05621" stroke-width="1"/>'},
+    '加纳利子':{d:'M24 10Q18 10 18 24Q18 38 24 42Q30 38 30 24Q30 10 24 10Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M24 2Q22 6 24 10Q26 6 24 2Z" fill="#d69e2e" stroke="#975a16" stroke-width="1"/>'},
+    '黍子':{d:'M24 8Q18 8 18 22Q18 36 24 40Q30 36 30 22Q30 8 24 8Z',f:'#fbd38d',s:'#975a16',extra:'<circle cx="24" cy="14" r="2" fill="#d69e2e"/><circle cx="22" cy="20" r="2" fill="#d69e2e"/><circle cx="26" cy="26" r="2" fill="#d69e2e"/>'},
+    '稻谷':{d:'M24 6Q20 6 20 22Q20 38 24 42Q28 38 28 22Q28 6 24 6Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M24 2L24 6" stroke="#975a16" stroke-width="2"/><path d="M20 16Q16 14 14 18" fill="none" stroke="#48bb78" stroke-width="1.5"/><path d="M28 20Q32 18 34 22" fill="none" stroke="#48bb78" stroke-width="1.5"/>'},
+    '燕麦':{d:'M24 8Q18 10 18 24Q18 38 24 40Q30 38 30 24Q30 10 24 8Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M20 16L28 16" stroke="#d69e2e" stroke-width="1"/><path d="M20 24L28 24" stroke="#d69e2e" stroke-width="1"/>'},
+    '糙米':{d:'M24 10Q18 10 18 24Q18 38 24 42Q30 38 30 24Q30 10 24 10Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M22 18L26 30" fill="none" stroke="#d69e2e" stroke-width="1"/>'},
+    '藜麦':{d:'M24 8Q18 8 18 24Q18 38 24 42Q30 38 30 24Q30 8 24 8Z',f:'#fed7aa',s:'#c05621',extra:'<circle cx="24" cy="18" r="2" fill="#c05621" opacity=".5"/><circle cx="22" cy="26" r="2" fill="#c05621" opacity=".5"/><circle cx="26" cy="32" r="2" fill="#c05621" opacity=".5"/>'},
+    // === NUTS ===
+    '杏仁':{d:'M24 4Q14 8 14 24Q14 40 24 44Q34 40 34 24Q34 8 24 4Z',f:'#fbd38d',s:'#975a16',extra:'<path d="M24 4Q26 2 24 24Q22 46 24 44" fill="none" stroke="#c05621" stroke-width="1.5"/>'},
+    '核桃':{d:'M24 6Q10 6 10 24Q10 42 24 44Q38 42 38 24Q38 6 24 6Z',f:'#d69e2e',s:'#744210',extra:'<path d="M24 6L24 44" fill="none" stroke="#744210" stroke-width="1.5"/><path d="M10 24L38 24" fill="none" stroke="#744210" stroke-width="1.5"/><path d="M14 14Q24 24 34 14" fill="none" stroke="#744210" stroke-width="1"/><path d="M14 34Q24 24 34 34" fill="none" stroke="#744210" stroke-width="1"/>'},
+    '开心果':{d:'M24 6Q16 6 14 22Q12 38 20 42Q24 44 24 42Q24 44 28 42Q36 38 34 22Q32 6 24 6Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M20 18Q24 28 28 18" fill="#48bb78" stroke="#276749" stroke-width="1.5"/>'},
+    '葵花籽':{d:'M24 8Q16 10 16 24Q16 38 24 42Q32 38 32 24Q32 10 24 8Z',f:'#2d3748',s:'#1a202c',extra:'<path d="M22 16Q24 12 26 16Q28 20 26 24Q24 28 22 24Q20 20 22 16Z" fill="#4a5568" stroke="#1a202c" stroke-width="1"/>'},
+    '夏威夷果':{d:'M24 6Q10 6 10 24Q10 42 24 44Q38 42 38 24Q38 6 24 6Z',f:'#fbd38d',s:'#975a16',extra:'<circle cx="24" cy="24" r="8" fill="#fefcbf" stroke="#975a16" stroke-width="1.5"/>'},
+    // === PROTEIN ===
+    '水煮蛋':{d:'M24 4Q12 4 10 22Q8 40 24 44Q40 40 38 22Q36 4 24 4Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M20 20Q24 14 28 20Q30 24 28 28Q24 32 20 28Q18 24 20 20Z" fill="#fbd38d" stroke="#975a16" stroke-width="1"/>'},
+    '熟鸡肉':{d:'M18 8Q10 8 8 22Q6 36 18 42Q24 44 26 38Q28 32 24 28Q28 24 26 16Q24 8 18 8Z',f:'#fbd38d',s:'#975a16',extra:'<circle cx="16" cy="12" r="3" fill="#fc8181" stroke="#9b2c2c" stroke-width="1.5"/>'},
+    '煮熟扁豆':{d:'',f:'',s:'',extra:'<ellipse cx="18" cy="24" rx="8" ry="12" fill="#c6f6d5" stroke="#276749" stroke-width="2"/><ellipse cx="30" cy="24" rx="8" ry="12" fill="#9ae6b4" stroke="#276749" stroke-width="2"/><ellipse cx="18" cy="24" rx="2" ry="6" fill="#276749"/><ellipse cx="30" cy="24" rx="2" ry="6" fill="#276749"/>'},
+    '面包虫':{d:'',f:'',s:'',extra:'<ellipse cx="24" cy="24" rx="6" ry="16" fill="#fbd38d" stroke="#975a16" stroke-width="2"/><path d="M20 16Q16 18 20 20M28 16Q32 18 28 20M20 24Q16 26 20 28M28 24Q32 26 28 28M20 32Q16 34 20 36M28 32Q32 34 28 36" fill="none" stroke="#975a16" stroke-width="1"/>'},
+    // === SNACKS ===
+    '全麦面包':{d:'M8 16Q8 8 24 6Q40 8 40 16Q40 22 38 28L10 28Q8 22 8 16Z',f:'#fbd38d',s:'#975a16',extra:'<path d="M14 14L34 14M16 20L32 20" fill="none" stroke="#d69e2e" stroke-width="1" stroke-linecap="round"/>'},
+    '爆米花':{d:'',f:'',s:'',extra:'<circle cx="18" cy="20" r="6" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/><circle cx="30" cy="18" r="6" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/><circle cx="24" cy="30" r="6" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/><path d="M20 14Q18 8 16 10" fill="none" stroke="#d69e2e" stroke-width="1"/><path d="M32 12Q34 6 36 8" fill="none" stroke="#d69e2e" stroke-width="1"/>'},
+    '小米穗':{d:'',f:'',s:'',extra:'<path d="M24 44L24 20" stroke="#975a16" stroke-width="2.5"/><circle cx="20" cy="18" r="3" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/><circle cx="28" cy="16" r="3" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/><circle cx="18" cy="12" r="3" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/><circle cx="26" cy="10" r="3" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/><circle cx="22" cy="6" r="3" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/>'},
+    // === SUPPLEMENTS ===
+    '墨鱼骨':{d:'M24 4Q12 4 10 24Q8 44 24 46Q40 44 38 24Q36 4 24 4Z',f:'#e2e8f0',s:'#a0aec0',extra:'<path d="M18 14L30 14M16 22L32 22M18 30L30 30M16 38L32 38" fill="none" stroke="#cbd5e0" stroke-width="1.5" stroke-linecap="round"/>'},
+    // === DANGER FOODS ===
+    '巧克力':{d:'M6 10H42V38H6Z',f:'#744210',s:'#4a2c0a',extra:'<path d="M6 18H42M6 26H42" stroke="#4a2c0a" stroke-width="1.5"/><path d="M28 10V38" stroke="#4a2c0a" stroke-width="1"/>'},
+    '牛油果':{d:'M24 4Q12 4 10 22Q8 42 24 46Q40 42 38 22Q36 4 24 4Z',f:'#68d391',s:'#276749',extra:'<ellipse cx="24" cy="28" rx="8" ry="10" fill="#fefcbf" stroke="#975a16" stroke-width="2"/><circle cx="24" cy="28" r="4" fill="#744210" stroke="#4a2c0a" stroke-width="1.5"/>'},
+    '洋葱':{d:'M24 6Q10 6 10 24Q10 42 24 44Q38 42 38 24Q38 6 24 6Z',f:'#fed7aa',s:'#c05621',extra:'<path d="M24 6Q22 4 24 2Q26 4 24 6" fill="#48bb78" stroke="#276749" stroke-width="1.5"/><path d="M18 18Q24 14 30 18Q24 22 18 18" fill="none" stroke="#c05621" stroke-width="1"/><path d="M16 24Q24 20 32 24Q24 28 16 24" fill="none" stroke="#c05621" stroke-width="1"/>'},
+    '大蒜':{d:'',f:'',s:'',extra:'<ellipse cx="20" cy="30" rx="8" ry="12" fill="#fefcbf" stroke="#975a16" stroke-width="2"/><ellipse cx="28" cy="30" rx="8" ry="12" fill="#fefcbf" stroke="#975a16" stroke-width="2"/><path d="M24 18L24 6" stroke="#975a16" stroke-width="2.5" stroke-linecap="round"/><path d="M20 14L24 4" fill="none" stroke="#975a16" stroke-width="1.5"/><path d="M28 14L24 4" fill="none" stroke="#975a16" stroke-width="1.5"/>'},
+    '韭菜':{d:'M20 4Q16 4 16 24Q16 42 20 44M28 4Q32 4 32 24Q32 42 28 44',f:'#9ae6b4',s:'#276749',extra:'<path d="M24 4Q20 4 24 24Q28 4 24 44" fill="none" stroke="#276749" stroke-width="1" stroke-dasharray="2 2"/>'},
+    '大葱':{d:'M24 4Q18 4 16 20Q14 38 24 44Q34 38 32 20Q30 4 24 4Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M24 4Q20 0 18 4Q22 6 24 4Z" fill="#48bb78" stroke="#276749" stroke-width="1.5"/>'},
+    '酒精':{d:'M14 8H34V12L36 14V40Q36 44 24 44Q12 44 12 40V14L14 12Z',f:'#fefcbf',s:'#975a16',extra:'<path d="M12 18H36" stroke="#d69e2e" stroke-width="1.5"/><path d="M20 14Q24 10 28 14" fill="none" stroke="#d69e2e" stroke-width="1"/>'},
+    '咖啡':{d:'M12 10H36V14Q36 38 24 40Q12 38 12 14Z',f:'#fbd38d',s:'#975a16',extra:'<path d="M36 16Q44 16 44 24Q44 30 36 30" fill="none" stroke="#975a16" stroke-width="2"/><path d="M18 6Q20 2 22 6Q24 2 26 6" fill="none" stroke="#a0aec0" stroke-width="1.5" stroke-linecap="round"/>'},
+    '苹果籽':{d:'M24 8Q10 8 10 24Q10 40 24 42Q38 40 38 24Q38 8 24 8Z',f:'#fc8181',s:'#9b2c2c',extra:'<ellipse cx="24" cy="24" rx="4" ry="3" fill="#744210" stroke="#4a2c0a" stroke-width="2"/><path d="M22 22L26 26M26 22L22 26" fill="none" stroke="#1a202c" stroke-width="1.5"/>'},
+    '水果核':{d:'M24 8Q14 8 14 24Q14 40 24 42Q34 40 34 24Q34 8 24 8Z',f:'#d69e2e',s:'#744210',extra:'<path d="M24 8Q26 4 24 2" fill="none" stroke="#9b2c2c" stroke-width="2" stroke-dasharray="3 2"/>'},
+    '生豆类':{d:'',f:'',s:'',extra:'<ellipse cx="18" cy="26" rx="8" ry="12" fill="#fc8181" stroke="#9b2c2c" stroke-width="2"/><ellipse cx="30" cy="26" rx="8" ry="12" fill="#fbb6ce" stroke="#97266d" stroke-width="2"/><ellipse cx="18" cy="26" rx="2" ry="4" fill="#9b2c2c"/><ellipse cx="30" cy="26" rx="2" ry="4" fill="#97266d"/>'},
+    '野生蘑菇':{d:'M8 28Q8 12 24 8Q40 12 40 28Z',f:'#fc8181',s:'#9b2c2c',extra:'<rect x="20" y="28" width="8" height="16" rx="2" fill="#fefcbf" stroke="#975a16" stroke-width="2"/><circle cx="18" cy="18" r="3" fill="#fefcbf" opacity=".5"/><circle cx="30" cy="20" r="2" fill="#fefcbf" opacity=".5"/>'},
+    '生土豆_t':{d:'M24 8Q10 8 8 24Q8 40 24 42Q40 40 38 24Q36 8 24 8Z',f:'#fbd38d',s:'#c05621',extra:'<circle cx="18" cy="24" r="1.5" fill="#975a16"/><circle cx="30" cy="28" r="1.5" fill="#975a16"/><path d="M14 14L18 16" stroke="#48bb78" stroke-width="2" stroke-linecap="round"/>'},
+    '番茄茎叶':{d:'M24 6Q10 6 10 24Q10 42 24 44Q38 42 38 24Q38 6 24 6Z',f:'#fc8181',s:'#9b2c2c',extra:'<path d="M20 6Q18 2 14 4" fill="#48bb78" stroke="#276749" stroke-width="2" stroke-linecap="round"/><path d="M28 6Q30 2 34 4" fill="#48bb78" stroke="#276749" stroke-width="2" stroke-linecap="round"/><path d="M20 6L28 6" stroke="#276749" stroke-width="1.5"/>'},
+    '大黄叶':{d:'',f:'',s:'',extra:'<path d="M24 4L8 20L24 14L40 20Z" fill="#fc8181" stroke="#9b2c2c" stroke-width="2"/><path d="M24 14L24 44" stroke="#975a16" stroke-width="3" stroke-linecap="round"/>'},
+    '牛奶':{d:'M14 10H34V12Q36 12 36 16V38Q36 42 24 42Q12 42 12 38V16Q12 12 14 12Z',f:'#fefcbf',s:'#a0aec0',extra:'<path d="M14 10Q14 6 24 6Q34 6 34 10" fill="none" stroke="#a0aec0" stroke-width="1.5"/><circle cx="24" cy="28" r="4" fill="#e2e8f0" stroke="#a0aec0" stroke-width="1"/>'},
+    '高盐食品':{d:'',f:'',s:'',extra:'<rect x="10" y="14" width="28" height="24" rx="3" fill="#e2e8f0" stroke="#a0aec0" stroke-width="2"/><path d="M20 14Q20 8 24 8Q28 8 28 14" fill="none" stroke="#a0aec0" stroke-width="2"/><circle cx="20" cy="26" r="2" fill="#a0aec0"/><circle cx="28" cy="26" r="2" fill="#a0aec0"/><circle cx="24" cy="32" r="2" fill="#a0aec0"/>'},
+    '高糖食品':{d:'',f:'',s:'',extra:'<circle cx="24" cy="24" r="14" fill="#fbb6ce" stroke="#97266d" stroke-width="2"/><path d="M20 20L28 28M28 20L20 28" fill="none" stroke="#97266d" stroke-width="2" stroke-linecap="round"/>'},
+    '油炸食品':{d:'',f:'',s:'',extra:'<path d="M10 20Q10 10 24 10Q38 10 38 20Q38 24 34 26L14 26Q10 24 10 20Z" fill="#fbd38d" stroke="#975a16" stroke-width="2"/><path d="M14 26Q10 34 14 38Q18 42 34 38Q38 34 34 26" fill="#fbd38d" stroke="#975a16" stroke-width="2"/>'},
+    '发霉食物':{d:'M24 8Q12 8 10 24Q8 42 24 44Q40 42 38 24Q36 8 24 8Z',f:'#c6f6d5',s:'#276749',extra:'<circle cx="18" cy="20" r="3" fill="#48bb78" opacity=".7"/><circle cx="28" cy="24" r="4" fill="#48bb78" opacity=".7"/><circle cx="22" cy="34" r="3" fill="#48bb78" opacity=".7"/><path d="M16 16Q20 18 18 22" fill="none" stroke="#276749" stroke-width="1" stroke-dasharray="1 2"/>'},
+  };
+
+  // Special alias mapping
+  const aliasMap = {'生土豆':'生土豆_t'};
+  const key = aliasMap[name] || name;
+  const cfg = S[key];
+  if (!cfg) return `<svg width="${size}" height="${size}" viewBox="0 0 48 48"><circle cx="24" cy="24" r="16" fill="#e2e8f0" stroke="#a0aec0" stroke-width="2"/><text x="24" y="29" text-anchor="middle" font-size="14" fill="#718096">${name[0]}</text></svg>`;
+
+  let shape = '';
+  if (cfg.d) {
+    shape = `<path d="${cfg.d}" fill="${cfg.f}" stroke="${cfg.s}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 48 48">${shape}${cfg.extra||''}</svg>`;
+}
+
+const SAFE_FOODS = [
+  {name:'白菜',category:'蔬菜',sub:'菜叶类',nutrition:'富含维生素和矿物质',note:'洗净去农残',amount:'多多益善'},
+  {name:'芝麻菜',category:'蔬菜',sub:'菜叶类',nutrition:'富含维生素和矿物质',note:'洗净',amount:'适量'},
+  {name:'萝卜叶',category:'蔬菜',sub:'菜叶类',nutrition:'维生素/矿物质',note:'洗净',amount:'适量'},
+  {name:'油菜',category:'蔬菜',sub:'菜叶类',nutrition:'维生素/矿物质',note:'洗净',amount:'适量'},
+  {name:'羽衣甘蓝',category:'蔬菜',sub:'菜叶类',nutrition:'维生素A/K/钙，羽毛光泽',note:'洗净',amount:'推荐常喂'},
+  {name:'菠菜',category:'蔬菜',sub:'菜叶类',nutrition:'铁/钙/叶酸',note:'少量(含草酸)，洗净',amount:'少量'},
+  {name:'蒲公英叶',category:'蔬菜',sub:'菜叶类',nutrition:'维生素/矿物质',note:'洗净',amount:'适量'},
+  {name:'小白菜',category:'蔬菜',sub:'菜叶类',nutrition:'维生素/矿物质',note:'洗净',amount:'适量'},
+  {name:'西兰花',category:'蔬菜',sub:'茎菜类',nutrition:'维生素C/纤维/抗氧化',note:'切碎或小朵',amount:'多多益善'},
+  {name:'菜花',category:'蔬菜',sub:'茎菜类',nutrition:'维生素C/纤维',note:'切碎',amount:'适量'},
+  {name:'芹菜',category:'蔬菜',sub:'茎菜类',nutrition:'膳食纤维丰富',note:'切小段',amount:'适量'},
+  {name:'胡萝卜',category:'蔬菜',sub:'根菜类',nutrition:'β-胡萝卜素，羽毛/视力',note:'切丝或小丁',amount:'推荐常喂'},
+  {name:'红薯',category:'蔬菜',sub:'根菜类',nutrition:'碳水/维生素A',note:'必须煮熟',amount:'适量'},
+  {name:'土豆',category:'蔬菜',sub:'根菜类',nutrition:'碳水/钾',note:'⚠️必须煮熟！禁生食/发芽/变绿',amount:'适量'},
+  {name:'彩椒',category:'蔬菜',sub:'果菜类',nutrition:'维生素C极高',note:'去籽切块',amount:'推荐常喂'},
+  {name:'南瓜',category:'蔬菜',sub:'果菜类',nutrition:'维生素A/纤维',note:'可煮熟喂瓜肉',amount:'适量'},
+  {name:'豌豆',category:'蔬菜',sub:'果菜类',nutrition:'蛋白质/纤维',note:'洗净',amount:'适量'},
+  {name:'荷兰豆',category:'蔬菜',sub:'果菜类',nutrition:'维生素/纤维',note:'洗净',amount:'适量'},
+  {name:'辣椒',category:'蔬菜',sub:'果菜类',nutrition:'维生素C',note:'适量',amount:'少量'},
+  {name:'鲜玉米',category:'蔬菜',sub:'其他',nutrition:'多种营养，丰容佳品',note:'提供玉米棒子啃食',amount:'推荐常喂'},
+  {name:'马齿苋',category:'蔬菜',sub:'其他',nutrition:'天然消炎降火',note:'洗净晾干',amount:'夏季推荐'},
+  {name:'黄瓜',category:'蔬菜',sub:'其他',nutrition:'水分/维生素',note:'洗净去籽',amount:'适量'},
+  {name:'四季豆',category:'蔬菜',sub:'其他',nutrition:'蛋白质/纤维',note:'⚠️必须彻底煮熟！',amount:'适量'},
+  {name:'苹果',category:'水果',sub:'仁果类',nutrition:'膳食纤维/维生素',note:'⚠️必须去核去籽！',amount:'1-2小块/天'},
+  {name:'梨',category:'水果',sub:'仁果类',nutrition:'水分/纤维/维生素',note:'⚠️必须去核去籽！',amount:'1-2小块/天'},
+  {name:'桃子',category:'水果',sub:'核果类',nutrition:'维生素/矿物质',note:'⚠️必须去核！',amount:'1小块/天'},
+  {name:'樱桃',category:'水果',sub:'核果类',nutrition:'铁/维生素C',note:'⚠️必须去核！',amount:'1-2颗/天'},
+  {name:'橙子',category:'水果',sub:'柑橘类',nutrition:'维生素C丰富',note:'去皮去籽，少量(酸性强)',amount:'1-2瓣/天'},
+  {name:'橘子',category:'水果',sub:'柑橘类',nutrition:'维生素C',note:'去皮去籽，少量',amount:'1-2瓣/天'},
+  {name:'蓝莓',category:'水果',sub:'浆果类',nutrition:'抗氧化剂/维生素C',note:'洗净',amount:'2-3颗/天'},
+  {name:'草莓',category:'水果',sub:'浆果类',nutrition:'维生素C/抗氧化剂',note:'去蒂清洗',amount:'1-2颗/天'},
+  {name:'葡萄',category:'水果',sub:'浆果类',nutrition:'糖分/维生素',note:'去皮去籽更安全',amount:'1-2颗/天'},
+  {name:'猕猴桃',category:'水果',sub:'浆果类',nutrition:'维生素C/纤维',note:'糖分偏高适量',amount:'1小块/天'},
+  {name:'石榴',category:'水果',sub:'浆果类',nutrition:'抗氧化剂',note:'喂籽',amount:'少量'},
+  {name:'火龙果',category:'水果',sub:'浆果类',nutrition:'水分/维生素',note:'糖分偏高适量',amount:'1小块/天'},
+  {name:'西瓜',category:'水果',sub:'瓜果类',nutrition:'水分',note:'水分极高，少量瓜肉',amount:'1小块/天'},
+  {name:'哈密瓜',category:'水果',sub:'瓜果类',nutrition:'维生素A/水分',note:'去籽',amount:'1小块/天'},
+  {name:'芒果',category:'水果',sub:'热带类',nutrition:'维生素A/纤维',note:'⚠️必须去皮去核！',amount:'1小块/天'},
+  {name:'菠萝',category:'水果',sub:'热带类',nutrition:'维生素C/锰',note:'去皮去芯',amount:'1小块/天'},
+  {name:'木瓜',category:'水果',sub:'热带类',nutrition:'维生素A/C/消化酶',note:'去籽',amount:'1小块/天'},
+  {name:'香蕉',category:'水果',sub:'热带类',nutrition:'钾/能量',note:'糖分偏高适量',amount:'1薄片/天'},
+  {name:'荔枝',category:'水果',sub:'热带类',nutrition:'水分/糖分',note:'⚠️去皮去核！',amount:'1-2颗/天'},
+  {name:'椰子',category:'水果',sub:'热带类',nutrition:'脂肪/矿物质',note:'新鲜椰肉/椰汁',amount:'少量'},
+  {name:'黄谷子',category:'谷物种子',sub:'主食谷物',nutrition:'碳水/蛋白质(最常用主食)',note:'带壳可磨喙',amount:'主食核心'},
+  {name:'红谷子',category:'谷物种子',sub:'主食谷物',nutrition:'碳水/蛋白质',note:'带壳',amount:'主食搭配'},
+  {name:'加纳利子',category:'谷物种子',sub:'主食谷物',nutrition:'高蛋白/适口性好',note:'常见搭配',amount:'主食搭配'},
+  {name:'黍子',category:'谷物种子',sub:'主食谷物',nutrition:'碳水/蛋白质',note:'即五色黍子',amount:'主食搭配'},
+  {name:'稻谷',category:'谷物种子',sub:'主食谷物',nutrition:'碳水',note:'玄凤等中大型偏好',amount:'主食搭配'},
+  {name:'燕麦',category:'谷物种子',sub:'主食谷物',nutrition:'蛋白质/纤维',note:'常见搭配',amount:'主食搭配'},
+  {name:'糙米',category:'谷物种子',sub:'其他谷物',nutrition:'B族维生素/纤维',note:'煮熟喂食',amount:'适量'},
+  {name:'藜麦',category:'谷物种子',sub:'其他谷物',nutrition:'完全蛋白/矿物质',note:'煮熟',amount:'适量'},
+  {name:'杏仁',category:'坚果',sub:'低脂坚果',nutrition:'维生素E/镁',note:'无盐，生或轻烤',amount:'一周几颗'},
+  {name:'核桃',category:'坚果',sub:'低脂坚果',nutrition:'Omega-3/蛋白质',note:'无盐，少量',amount:'一周几颗'},
+  {name:'开心果',category:'坚果',sub:'低脂坚果',nutrition:'蛋白质/矿物质',note:'无盐，少量',amount:'一周几颗'},
+  {name:'葵花籽',category:'坚果',sub:'高脂坚果',nutrition:'脂肪高',note:'不超过总食量10%',amount:'零食级'},
+  {name:'夏威夷果',category:'坚果',sub:'高脂坚果',nutrition:'脂肪极高',note:'无盐，极少',amount:'一周1-2颗'},
+  {name:'水煮蛋',category:'蛋白质',sub:'蛋类',nutrition:'优质蛋白/钙(带壳碾碎)',note:'无调味，半个即可',amount:'每周2-3次'},
+  {name:'熟鸡肉',category:'蛋白质',sub:'肉类',nutrition:'蛋白质',note:'无调味，去皮，少量',amount:'每周1-2次'},
+  {name:'煮熟扁豆',category:'蛋白质',sub:'豆类',nutrition:'蛋白质/纤维',note:'⚠️必须彻底煮熟！',amount:'每周1-2次'},
+  {name:'面包虫',category:'蛋白质',sub:'昆虫',nutrition:'蛋白质',note:'换羽期补充',amount:'每周1-2次'},
+  {name:'全麦面包',category:'零食',sub:'零食',nutrition:'碳水/纤维',note:'偶尔',amount:'偶尔'},
+  {name:'爆米花',category:'零食',sub:'零食',nutrition:'碳水',note:'无盐无糖，偶尔',amount:'偶尔'},
+  {name:'小米穗',category:'零食',sub:'零食',nutrition:'丰容/训练奖励',note:'少量',amount:'训练时'},
+  {name:'墨鱼骨',category:'补充品',sub:'补钙',nutrition:'钙质',note:'挂在笼内自行啃咬',amount:'常备'},
+];
+
+const DANGER_FOODS = [
+  {name:'巧克力',level:'致命',toxin:'可可碱+咖啡因',symptom:'心跳狂飙、神经亢奋、抽搐癫痫、心脏衰竭死亡',tip:'黑巧克力浓度越高毒性越强',alt:'任何含巧克力的食品'},
+  {name:'牛油果',level:'致命',toxin:'Persin鳄梨毒素',symptom:'直接损伤心肌、呼吸困难、胸腔积液、猝死率极高',tip:'全株含毒(果皮/果核/果肉)，无安全剂量',alt:'鳄梨、鳄梨酱'},
+  {name:'洋葱',level:'致命',toxin:'硫代硫酸盐',symptom:'破坏红细胞→溶血性贫血、嗜睡、呼吸困难',tip:'任何形式(生/熟/粉)都危险',alt:'洋葱粉、含洋葱的汤'},
+  {name:'大蒜',level:'致命',toxin:'硫代硫酸盐',symptom:'溶血性贫血',tip:'任何形式(生/熟/粉)都危险',alt:'大蒜粉、蒜味零食'},
+  {name:'韭菜',level:'致命',toxin:'硫代硫酸盐',symptom:'溶血性贫血',tip:'所有葱属植物都危险',alt:'韭菜花、韭菜馅'},
+  {name:'大葱',level:'致命',toxin:'硫代硫酸盐',symptom:'溶血性贫血',tip:'所有葱属植物都危险',alt:'葱花、葱油'},
+  {name:'酒精',level:'致命',toxin:'乙醇',symptom:'微量即中毒，抑制中枢神经、肝损伤、昏迷死亡',tip:'任何含酒精饮品，微量即致命',alt:'酒心巧克力、料酒'},
+  {name:'咖啡',level:'致命',toxin:'咖啡因',symptom:'心跳加速、神经亢奋、心脏衰竭',tip:'包括可乐、功能饮料',alt:'浓茶、含咖啡因饮料'},
+  {name:'苹果籽',level:'致命',toxin:'氰苷→氰化物',symptom:'阻断细胞呼吸→休克死亡',tip:'喂苹果必须去核去籽！',alt:'梨核、水果核都含氰化物'},
+  {name:'水果核',level:'致命',toxin:'氰苷→氰化物',symptom:'阻断细胞呼吸→休克死亡',tip:'梨/桃/杏/樱桃/李子核都含氰化物',alt:'所有水果核和籽'},
+  {name:'生豆类',level:'致命',toxin:'植物血凝素',symptom:'剧烈呕吐、腹泻',tip:'必须彻底煮熟才能少量喂食',alt:'生红豆、生芸豆最危险'},
+  {name:'野生蘑菇',level:'致命',toxin:'多种毒素',symptom:'肝损伤、神经中毒',tip:'安全起见一律不喂',alt:'任何不确定品种的蘑菇'},
+  {name:'生土豆',level:'危险',toxin:'龙葵素',symptom:'神经与消化系统中毒',tip:'必须煮熟，发芽/变绿禁食',alt:'发芽土豆、绿皮土豆'},
+  {name:'番茄茎叶',level:'危险',toxin:'茄碱',symptom:'中毒',tip:'番茄果实安全，茎藤叶必须去除',alt:'番茄叶、番茄藤'},
+  {name:'大黄叶',level:'危险',toxin:'草酸',symptom:'肾衰竭',tip:'大黄茎可少量，叶禁食',alt:''},
+  {name:'牛奶',level:'伤身',toxin:'乳糖',symptom:'乳糖不耐受→腹泻',tip:'极少量原味酸奶可尝试',alt:'鲜奶、奶制品'},
+  {name:'高盐食品',level:'伤身',toxin:'过量钠',symptom:'肾脏无法代谢→脱水、肾损伤',tip:'鸟类肾脏承受不了高钠',alt:'薯片、火腿肠、咸味零食'},
+  {name:'高糖食品',level:'伤身',toxin:'过量糖',symptom:'肥胖、脂肪肝',tip:'人类加工食品一律不喂',alt:'糖果、蛋糕、甜饮料'},
+  {name:'油炸食品',level:'伤身',toxin:'过量脂肪',symptom:'肥胖、脂肪肝',tip:'一律不喂',alt:'炸鸡、薯条、油条'},
+  {name:'发霉食物',level:'伤身',toxin:'黄曲霉素',symptom:'肝/肾损伤、致癌',tip:'花生极易霉变',alt:'过期食品、霉变谷物'},
+];
+
+// ==================== STATE ====================
+let currentTab = 'safe', searchQuery = '', selectedParrotSize = 'small';
+let editingParrotId = null;
+
+// ==================== PARROT PROFILES ====================
+const PARROT_BREEDS = ['虎皮鹦鹉','玄凤鹦鹉','牡丹鹦鹉','太阳锥尾鹦鹉','绿颊锥尾鹦鹉','和尚鹦鹉','金刚鹦鹉','非洲灰鹦鹉','亚马逊鹦鹉','折中鹦鹉','凯克鹦鹉','塞内加尔鹦鹉','亚历山大鹦鹉','月轮鹦鹉','吸蜜鹦鹉','贾丁氏鹦鹉','其他'];
+
+function loadParrots() {
+  try { return JSON.parse(localStorage.getItem('parrot_profiles') || '[]'); } catch(e) { return []; }
+}
+function saveParrots(list) { localStorage.setItem('parrot_profiles', JSON.stringify(list)); }
+
+function compressPhoto(file, maxSize) {
+  return new Promise(function(resolve) {
+    if (!file) { resolve(''); return; }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var size = 200;
+        canvas.width = size; canvas.height = size;
+        var ctx = canvas.getContext('2d');
+        var s = Math.min(img.width, img.height);
+        var sx = (img.width - s) / 2, sy = (img.height - s) / 2;
+        ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ==================== RENDER ====================
+function render() {
+  // Control search box visibility
+  var sb = document.querySelector('.search-box');
+  if (currentTab === 'guide' || currentTab === 'profile') {
+    sb.style.display = 'none';
+  } else {
+    sb.style.display = 'flex';
+  }
+  var el = document.getElementById('content');
+  if (searchQuery) renderSearch(el);
+  else if (currentTab === 'safe') renderSafe(el);
+  else if (currentTab === 'danger') renderDanger(el);
+  else if (currentTab === 'profile') renderProfile(el);
+  else renderGuide(el);
+}
+
+function renderSafe(el) {
+  const cats = [
+    {key:'蔬菜',items:SAFE_FOODS.filter(f=>f.category==='蔬菜')},
+    {key:'水果',items:SAFE_FOODS.filter(f=>f.category==='水果')},
+    {key:'谷物种子',items:SAFE_FOODS.filter(f=>f.category==='谷物种子')},
+    {key:'坚果',items:SAFE_FOODS.filter(f=>f.category==='坚果')},
+    {key:'蛋白质',items:SAFE_FOODS.filter(f=>f.category==='蛋白质')},
+    {key:'零食',items:SAFE_FOODS.filter(f=>f.category==='零食')},
+    {key:'补充品',items:SAFE_FOODS.filter(f=>f.category==='补充品')},
+  ];
+  el.innerHTML = cats.map(c => `<div class="category-section">
+    <div class="category-header">${c.key}</div>
+    <div class="food-grid">${c.items.map(f=>`<div class="food-card" onclick="showSafeDetail('${f.name}')">
+      <span class="food-icon">${foodIcon(f.name,36)}</span>
+      <div class="food-name">${f.name}</div>
+      <span class="level-badge safe">能吃</span>
+    </div>`).join('')}</div></div>`).join('');
+}
+
+function renderDanger(el) {
+  const groups = [
+    {key:'致命',items:DANGER_FOODS.filter(f=>f.level==='致命'),cc:'danger',bc:'fatal'},
+    {key:'危险',items:DANGER_FOODS.filter(f=>f.level==='危险'),cc:'warning',bc:'danger-level'},
+    {key:'伤身',items:DANGER_FOODS.filter(f=>f.level==='伤身'),cc:'warning',bc:'caution'},
+  ];
+  let html = '<div style="background:var(--brick-50);border:2.5px dashed var(--brick-300);border-radius:12px;padding:12px;margin-bottom:16px;text-align:center"><span style="font-size:14px;font-weight:700;color:var(--brick-500)">⚠️ 这种东西一口都不能喂！</span></div>';
+  groups.forEach(g => {
+    html += `<div class="category-section"><div class="category-header">${g.key}级</div>
+    <div class="food-grid">${g.items.map(f=>`<div class="food-card ${g.cc}" onclick="showDangerDetail('${f.name}')">
+      <span class="food-icon">${foodIcon(f.name,36)}</span>
+      <div class="food-name">${f.name}</div>
+      <span class="level-badge ${g.bc}">${f.level}</span>
+    </div>`).join('')}</div></div>`;
+  });
+  el.innerHTML = html;
+}
+
+function renderGuide(el) {
+  const sz = {
+    small:{l:'小型',w:'30-50g',p:'50%',v:'蔬菜2-3次/周，水果少量',a:'20-30克/天',n:'需墨鱼骨补钙，极易因只喂小米导致营养单一'},
+    medium:{l:'中型',w:'80-120g',p:'60%',v:'蔬菜每天，水果少量',a:'30-50克/天',n:'对高脂食物敏感，需额外叶菜'},
+    large:{l:'中大型',w:'300-600g',p:'70%',v:'蔬菜每天大量，水果适量',a:'50-80克/天',n:'高智力需觅食丰容，钙需求高'},
+    xlarge:{l:'大型',w:'1000g+',p:'75%',v:'大量蔬菜(叶菜为主)',a:'体重1-2%/天',n:'避免自由喂颗粒粮，需测量分量'},
+  };
+  const s = sz[selectedParrotSize];
+  el.innerHTML = `
+    <div class="guide-card"><h3>选择你的鹦鹉体型</h3>
+      <div class="size-selector">${Object.entries(sz).map(([k,v])=>`<div class="size-btn ${k===selectedParrotSize?'active':''}" onclick="selectSize('${k}')">${v.l}</div>`).join('')}</div>
+      <div style="background:var(--mustard-100);border-radius:12px;padding:12px;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--forest-500);margin-bottom:6px">${s.l}鹦鹉 (${s.w})</div>
+        <div style="font-size:12px;color:var(--gray-600);line-height:1.6">每日食量：${s.a}<br>${s.v}<br><span style="color:var(--forest-500)">${s.n}</span></div>
+      </div>
+      <h3 style="margin-top:16px">每日饮食比例</h3>
+      <div class="guide-bar"><div class="guide-bar-seg" style="width:${parseInt(s.p)}%;background:#40916c">主食${s.p}</div><div class="guide-bar-seg" style="width:20%;background:#d4a017">蔬果</div><div class="guide-bar-seg" style="width:8%;background:#a16207"></div></div>
+      <div class="guide-legend"><div class="guide-legend-item"><div class="guide-legend-dot" style="background:#40916c"></div>滋养丸/谷物</div><div class="guide-legend-item"><div class="guide-legend-dot" style="background:#d4a017"></div>新鲜蔬果</div><div class="guide-legend-item"><div class="guide-legend-dot" style="background:#a16207"></div>蛋白质/坚果</div></div>
+    </div>
+    <div class="guide-card"><h3>每日喂食时间表</h3>
+      <div class="schedule-item"><div class="schedule-time">早晨</div><div class="schedule-content"><span>换水+主食+新鲜蔬菜</span><br>蔬菜放单独碗或藏觅食玩具</div></div>
+      <div class="schedule-item"><div class="schedule-time">中午</div><div class="schedule-content"><span>小块水果+几粒坚果</span><br>训练时给作为奖励</div></div>
+      <div class="schedule-item"><div class="schedule-time">傍晚</div><div class="schedule-content"><span>主食+剩余蔬菜+蛋白质</span><br>2-3小时内没吃完的蔬果要撤走</div></div>
+      <div class="schedule-item"><div class="schedule-time">夜间</div><div class="schedule-content"><span>只留清水</span><br>确保水碗干净</div></div>
+    </div>
+    <div class="guide-card"><h3>喂食安全铁律</h3>
+      <div class="guide-rule"><div class="guide-rule-num">1</div><div class="guide-rule-text"><strong>不确定就不喂</strong> — 这是首要铁律</div></div>
+      <div class="guide-rule"><div class="guide-rule-num">2</div><div class="guide-rule-text"><strong>水果必须去核去籽</strong> — 苹果/梨/桃核含氰化物</div></div>
+      <div class="guide-rule"><div class="guide-rule-num">3</div><div class="guide-rule-text"><strong>蔬菜必须彻底清洗</strong> — 去农残，淡盐水泡10分钟</div></div>
+      <div class="guide-rule"><div class="guide-rule-num">4</div><div class="guide-rule-text"><strong>豆类土豆必须煮熟</strong> — 生豆含植物血凝素有剧毒</div></div>
+      <div class="guide-rule"><div class="guide-rule-num">5</div><div class="guide-rule-text"><strong>蔬果不能替代主食</strong> — 过量高水分蔬果易腹泻</div></div>
+      <div class="guide-rule"><div class="guide-rule-num">6</div><div class="guide-rule-text"><strong>及时清理剩余</strong> — 2-3小时没吃完要撤走</div></div>
+      <div class="guide-rule"><div class="guide-rule-num">7</div><div class="guide-rule-text"><strong>每日换水</strong> — 保证饮水干净新鲜</div></div>
+      <div class="guide-rule"><div class="guide-rule-num">8</div><div class="guide-rule-text"><strong>常备墨鱼骨补钙</strong> — 挂笼内让鸟自行啃咬</div></div>
+      <div class="guide-rule"><div class="guide-rule-num">9</div><div class="guide-rule-text"><strong>观察排便</strong> — 连续两天粪便稀薄需暂停水果</div></div>
+      <div class="guide-rule"><div class="guide-rule-num">10</div><div class="guide-rule-text"><strong>种类轮换</strong> — 每天提供不同蔬果，保证营养多样</div></div>
+    </div>
+    <div class="guide-card"><h3>一周蔬菜轮换建议</h3>
+      <div class="schedule-item"><div class="schedule-time">周一三五</div><div class="schedule-content"><span>油麦菜</span> — 养毛防炸毛</div></div>
+      <div class="schedule-item"><div class="schedule-time">周二四</div><div class="schedule-content"><span>生菜/甜椒</span> — 降火稳情绪</div></div>
+      <div class="schedule-item"><div class="schedule-time">周六</div><div class="schedule-content"><span>胡萝卜</span> — 补色固毛</div></div>
+      <div class="schedule-item"><div class="schedule-time">周日</div><div class="schedule-content"><span>停蔬菜</span> — 只喂主粮+墨鱼骨，让肠胃休息</div></div>
+      <div style="font-size:11px;color:var(--gray-400);margin-top:8px">每次蔬菜量约拇指大小，当天吃完，吃不完及时撤走</div>
+    </div>`;
+}
+
+function renderSearch(el) {
+  const q = searchQuery.toLowerCase();
+  const sr = SAFE_FOODS.filter(f => f.name.includes(q) || f.category.includes(q) || (f.sub && f.sub.includes(q)));
+  const dr = DANGER_FOODS.filter(f => f.name.includes(q) || f.level.includes(q) || f.symptom.includes(q) || (f.alt && f.alt.includes(q)));
+  if (!sr.length && !dr.length) { el.innerHTML = `<div class="search-results"><div class="no-result"><p>没有找到"${searchQuery}"的相关食物</p><p style="font-size:12px;margin-top:4px;color:var(--gray-300)">不确定能不能吃？那就不要喂！</p></div></div>`; return; }
+  let html = '<div class="search-results">';
+  dr.forEach(f => { const bc = f.level==='致命'?'fatal':(f.level==='危险'?'danger-level':'caution'); html += `<div class="search-result-item" onclick="showDangerDetail('${f.name}')"><span class="sr-emoji">${foodIcon(f.name,32)}</span><div class="sr-info"><div class="sr-name">${f.name}</div><div class="sr-cat">${f.symptom.substring(0,20)}…</div></div><span class="level-badge ${bc}">${f.level}</span></div>`; });
+  sr.forEach(f => { html += `<div class="search-result-item" onclick="showSafeDetail('${f.name}')"><span class="sr-emoji">${foodIcon(f.name,32)}</span><div class="sr-info"><div class="sr-name">${f.name}</div><div class="sr-cat">${f.category} · ${f.nutrition.substring(0,15)}…</div></div><span class="level-badge safe">能吃</span></div>`; });
+  el.innerHTML = html + '</div>';
+}
+
+// ==================== PROFILE RENDER ====================
+function renderProfile(el) {
+  var parrots = loadParrots();
+  if (editingParrotId !== null) { renderParrotForm(el, parrots); return; }
+  var html = '';
+  if (parrots.length === 0) {
+    html += '<div class="profile-empty">';
+    html += '<svg class="profile-empty-icon" width="80" height="80" viewBox="0 0 48 48"><circle cx="24" cy="26" r="17" fill="#86efac" stroke="#52b788" stroke-width="2.5"/><circle cx="19" cy="23" r="3" fill="#fff"/><circle cx="29" cy="23" r="3" fill="#fff"/><circle cx="20" cy="23.5" r="1.8" fill="#1f2937"/><circle cx="30" cy="23.5" r="1.8" fill="#1f2937"/><path d="M22 28 Q24 30 26 28" fill="none" stroke="#d4a017" stroke-width="2.5" stroke-linecap="round"/><path d="M22 10 Q18 4 22 6 Q24 2 24 8" fill="#52b788" stroke="#40916c" stroke-width="1.5"/></svg>';
+    html += '<p>还没有鹦鹉档案</p>';
+    html += '<p style="font-size:12px;margin-top:4px">点击下方按钮添加你的第一只鹦鹉</p>';
+    html += '</div>';
+  } else {
+    parrots.forEach(function(p) {
+      var photoHtml = p.photo
+        ? '<img src="' + p.photo + '" alt="' + p.name + '"/>'
+        : '<svg width="28" height="28" viewBox="0 0 48 48"><circle cx="24" cy="26" r="17" fill="#86efac" stroke="#52b788" stroke-width="2.5"/><circle cx="19" cy="23" r="3" fill="#fff"/><circle cx="29" cy="23" r="3" fill="#fff"/><circle cx="20" cy="23.5" r="1.8" fill="#1f2937"/><circle cx="30" cy="23.5" r="1.8" fill="#1f2937"/><path d="M22 28 Q24 30 26 28" fill="none" stroke="#d4a017" stroke-width="2.5" stroke-linecap="round"/></svg>';
+      html += '<div class="parrot-card">';
+      html += '<div class="parrot-photo">' + photoHtml + '</div>';
+      html += '<div class="parrot-info"><div class="parrot-name">' + escHtml(p.name) + '</div>';
+      html += '<div class="parrot-detail">' + escHtml(p.breed) + (p.weight ? ' · ' + escHtml(p.weight) + 'g' : '') + '</div></div>';
+      html += '<div class="parrot-actions">';
+      html += '<button class="parrot-action-btn edit" onclick="editParrot(' + p.id + ')" title="编辑">&#9998;</button>';
+      html += '<button class="parrot-action-btn delete" onclick="confirmDeleteParrot(' + p.id + ')" title="删除">&#10005;</button>';
+      html += '</div></div>';
+    });
+  }
+  html += '<button class="profile-add-btn" onclick="addParrot()">';
+  html += '<svg width="20" height="20" viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="none" stroke="#40916c" stroke-width="3" stroke-dasharray="4 3"/><path d="M24 14V34M14 24H34" stroke="#40916c" stroke-width="3" stroke-linecap="round"/></svg>';
+  html += '添加鹦鹉</button>';
+  el.innerHTML = html;
+}
+
+function renderParrotForm(el, parrots) {
+  var p = null;
+  if (editingParrotId) { p = parrots.find(function(x) { return x.id === editingParrotId; }); }
+  var isNew = !p;
+  var photoPreview = p && p.photo ? '<img src="' + p.photo + '"/>' : '';
+  var breedOptions = PARROT_BREEDS.map(function(b) {
+    return '<option value="' + b + '"' + (p && p.breed === b ? ' selected' : '') + '>' + b + '</option>';
+  }).join('');
+
+  var html = '<div style="background:#fff;border-radius:16px;padding:16px;border:2px solid var(--forest-200);margin-bottom:16px">';
+  html += '<h3 style="font-size:16px;font-weight:700;color:var(--gray-800);margin-bottom:16px;display:flex;align-items:center;gap:8px">';
+  html += '<svg width="22" height="22" viewBox="0 0 48 48"><ellipse cx="24" cy="28" rx="14" ry="15" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/><ellipse cx="21" cy="23" rx="3" ry="3.5" fill="#fff"/><circle cx="21.8" cy="23" r="1.8" fill="#1f2937"/></svg>';
+  html += (isNew ? '添加鹦鹉' : '编辑鹦鹉') + '</h3>';
+
+  html += '<div class="form-group"><div class="form-label">名字</div>';
+  html += '<input class="form-input" id="parrotName" placeholder="给你的鹦鹉起个名字" value="' + (p ? escAttr(p.name) : '') + '"/></div>';
+
+  html += '<div class="form-group"><div class="form-label">品种</div>';
+  html += '<select class="form-select" id="parrotBreed"><option value="">请选择品种</option>' + breedOptions + '</select></div>';
+
+  html += '<div class="form-group"><div class="form-label">体重（克）</div>';
+  html += '<input class="form-input" id="parrotWeight" type="number" placeholder="如：35" value="' + (p && p.weight ? escAttr(String(p.weight)) : '') + '"/></div>';
+
+  html += '<div class="form-group"><div class="form-label">照片</div>';
+  html += '<div class="photo-upload" id="photoUpload" onclick="document.getElementById(\'photoInput\').click()">';
+  if (photoPreview) { html += photoPreview; }
+  else { html += '<svg width="32" height="32" viewBox="0 0 48 48"><path d="M8 16L16 8H40V40H8Z" fill="none" stroke="#7c5e3c" stroke-width="3"/><circle cx="28" cy="20" r="4" fill="none" stroke="#9ca3af" stroke-width="2"/><path d="M8 36L18 26L28 36L34 30L40 36" fill="none" stroke="#9ca3af" stroke-width="2"/></svg><div class="photo-upload-text">点击上传照片</div>'; }
+  html += '</div>';
+  html += '<input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)"/></div>';
+
+  html += '<div class="form-actions">';
+  html += '<button class="form-btn secondary" onclick="cancelParrotForm()">取消</button>';
+  html += '<button class="form-btn primary" onclick="saveParrot()">保存</button>';
+  html += '</div></div>';
+  el.innerHTML = html;
+
+  // Set breed selection after DOM ready
+  if (p && p.breed) {
+    var sel = document.getElementById('parrotBreed');
+    if (sel) sel.value = p.breed;
+  }
+}
+
+function escHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function escAttr(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+var _pendingPhoto = '';
+function handlePhotoUpload(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  compressPhoto(file).then(function(base64) {
+    _pendingPhoto = base64;
+    var upload = document.getElementById('photoUpload');
+    upload.innerHTML = '<img src="' + base64 + '"/>';
+  });
+}
+
+function addParrot() {
+  editingParrotId = 0; // 0 means new
+  _pendingPhoto = '';
+  render();
+}
+
+function editParrot(id) {
+  editingParrotId = id;
+  _pendingPhoto = '';
+  render();
+}
+
+function cancelParrotForm() {
+  editingParrotId = null;
+  _pendingPhoto = '';
+  render();
+}
+
+function saveParrot() {
+  var name = document.getElementById('parrotName').value.trim();
+  var breed = document.getElementById('parrotBreed').value;
+  var weight = document.getElementById('parrotWeight').value.trim();
+
+  if (!name) { alert('请输入鹦鹉的名字'); return; }
+  if (!breed) { alert('请选择鹦鹉的品种'); return; }
+
+  var parrots = loadParrots();
+  if (editingParrotId === 0) {
+    // New parrot
+    var newId = parrots.length > 0 ? Math.max.apply(null, parrots.map(function(p){return p.id;})) + 1 : 1;
+    var newP = { id: newId, name: name, breed: breed, weight: weight ? Number(weight) : '', photo: _pendingPhoto };
+    parrots.push(newP);
+  } else {
+    // Edit existing
+    var idx = parrots.findIndex(function(p) { return p.id === editingParrotId; });
+    if (idx >= 0) {
+      parrots[idx].name = name;
+      parrots[idx].breed = breed;
+      parrots[idx].weight = weight ? Number(weight) : '';
+      if (_pendingPhoto) parrots[idx].photo = _pendingPhoto;
+    }
+  }
+  saveParrots(parrots);
+  editingParrotId = null;
+  _pendingPhoto = '';
+  render();
+}
+
+function confirmDeleteParrot(id) {
+  var parrots = loadParrots();
+  var p = parrots.find(function(x) { return x.id === id; });
+  if (!p) return;
+  var overlay = document.createElement('div');
+  overlay.className = 'confirm-overlay';
+  overlay.innerHTML = '<div class="confirm-box">' +
+    '<div class="confirm-title">确认删除</div>' +
+    '<div class="confirm-msg">确定要删除"' + escHtml(p.name) + '"的档案吗？此操作不可撤销。</div>' +
+    '<div class="confirm-btns">' +
+    '<button class="confirm-btn cancel" id="confirmCancel">取消</button>' +
+    '<button class="confirm-btn danger" id="confirmOk">删除</button>' +
+    '</div></div>';
+  document.body.appendChild(overlay);
+  document.getElementById('confirmCancel').onclick = function() { document.body.removeChild(overlay); document.body.style.overflow=''; };
+  document.getElementById('confirmOk').onclick = function() {
+    parrots = parrots.filter(function(x) { return x.id !== id; });
+    saveParrots(parrots);
+    document.body.removeChild(overlay);
+    document.body.style.overflow='';
+    render();
+  };
+  overlay.onclick = function(e) { if (e.target === overlay) { document.body.removeChild(overlay); document.body.style.overflow=''; } };
+}
+
+// ==================== MODALS ====================
+function showSafeDetail(name) {
+  const f = SAFE_FOODS.find(x => x.name === name); if (!f) return;
+  document.getElementById('modalSheet').innerHTML = `<div class="modal-handle"></div><div class="modal-icon">${foodIcon(f.name,72)}</div><div class="modal-name">${f.name}</div><div class="modal-level"><span class="level-badge safe" style="font-size:12px;padding:3px 10px">⭐ 能吃</span></div><div class="modal-section"><div class="modal-section-title">📂 分类</div><div class="modal-section-content">${f.category} → ${f.sub}</div></div><div class="modal-section"><div class="modal-section-title">💪 营养价值</div><div class="modal-section-content">${f.nutrition}</div></div><div class="modal-section"><div class="modal-section-title">📝 注意事项</div><div class="modal-section-content" style="background:var(--mustard-50);padding:10px 12px;border-radius:8px;border:1px solid var(--mustard-200)">${f.note}</div></div><div class="modal-section"><div class="modal-section-title">📏 每日建议量</div><div class="modal-section-content" style="font-weight:700;color:var(--forest-500);font-size:16px">${f.amount}</div></div><button class="modal-close" onclick="closeModal()">关闭</button>`;
+  document.getElementById('modal').classList.add('show');
+}
+
+function showDangerDetail(name) {
+  const f = DANGER_FOODS.find(x => x.name === name); if (!f) return;
+  const bc = f.level==='致命'?'fatal':(f.level==='危险'?'danger-level':'caution');
+  const bb = f.level==='致命'?'var(--brick-50)':'var(--mustard-50)'; const bbr = f.level==='致命'?'var(--brick-200)':'var(--mustard-200)'; const bt = f.level==='致命'?'#c1440e':'#a16207';
+  document.getElementById('modalSheet').innerHTML = `<div class="modal-handle"></div><div class="modal-icon">${foodIcon(f.name,72)}</div><div class="modal-name">${f.name}</div><div class="modal-level"><span class="level-badge ${bc}" style="font-size:12px;padding:3px 10px">🚫 ${f.level}</span></div><div class="danger-box" style="background:${bb};border-color:${bbr}"><div class="db-title" style="color:${bt}">⚠️ 有毒成分</div><div class="db-content" style="color:${bt}">${f.toxin}</div></div><div class="modal-section"><div class="modal-section-title">🏥 中毒症状</div><div class="modal-section-content" style="color:var(--brick-600);font-weight:500">${f.symptom}</div></div><div class="modal-section"><div class="modal-section-title">💡 特别提醒</div><div class="modal-section-content">${f.tip}</div></div>${f.alt?`<div class="modal-section"><div class="modal-section-title">🔍 需要注意的同类项</div><div class="modal-section-content">${f.alt}</div></div>`:''}<button class="modal-close" onclick="closeModal()" style="background:var(--brick-50);color:var(--brick-500);border:2.5px dashed var(--brick-300);font-weight:900">我知道了</button>`;
+  document.getElementById('modal').classList.add('show');
+}
+
+// ==================== INTERACTIONS ====================
+function switchTab(tab) { currentTab=tab; searchQuery=''; editingParrotId=null; _pendingPhoto=''; document.getElementById('searchInput').value=''; document.getElementById('searchClear').classList.remove('show'); document.querySelectorAll('.tab-item').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab)); render(); }
+function selectSize(size) { selectedParrotSize=size; render(); }
+function closeModal(e) { if(e&&e.target!==document.getElementById('modal'))return; document.getElementById('modal').classList.remove('show'); }
+document.getElementById('searchInput').addEventListener('input',function(e){searchQuery=e.target.value.trim();document.getElementById('searchClear').classList.toggle('show',searchQuery.length>0);render();});
+function clearSearch(){document.getElementById('searchInput').value='';searchQuery='';document.getElementById('searchClear').classList.remove('show');render();}
+render();
+</script>
+</body>
+</html>
